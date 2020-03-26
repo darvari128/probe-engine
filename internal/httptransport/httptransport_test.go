@@ -20,11 +20,12 @@ func (d simpleTLSDialer) DialTLSContext(
 }
 
 func TestIntegration(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
 	var txp httptransport.Transport
 	txp = httptransport.NewBase(new(net.Dialer), new(simpleTLSDialer))
+	txp = httptransport.ErrWrapper{Transport: txp}
 	events := &httptransport.EventsSaver{Transport: txp}
 	txp = events
-	txp = httptransport.ErrWrapper{Transport: txp}
 	txp = httptransport.HeaderAdder{Transport: txp}
 	saver := &httptransport.SnapshotSaver{Transport: txp}
 	txp = saver

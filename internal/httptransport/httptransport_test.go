@@ -22,19 +22,19 @@ func (d simpleTLSDialer) DialTLSContext(
 func TestIntegration(t *testing.T) {
 	var txp httptransport.Transport
 	txp = httptransport.NewBase(new(net.Dialer), new(simpleTLSDialer))
-	events := &httptransport.EventsLogger{Transport: txp}
+	events := &httptransport.EventsSaver{Transport: txp}
 	txp = events
 	txp = httptransport.ErrWrapper{Transport: txp}
 	txp = httptransport.HeaderAdder{Transport: txp}
 	saver := &httptransport.SnapshotSaver{Transport: txp}
 	txp = saver
-	txp = httptransport.Logging{Transport: txp, Log: log.Infof}
+	txp = httptransport.Logging{Transport: txp, Logger: log.Log}
 	client := &http.Client{Transport: txp}
 	resp, err := client.Get("http://facebook.com")
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, ev := range events.Events() {
+	for _, ev := range events.ReadEvents() {
 		t.Logf("%+v", ev)
 	}
 	for _, snap := range saver.Snapshots() {

@@ -55,22 +55,27 @@ func NewBase(dialer Dialer, tlsDialer TLSDialer) *http.Transport {
 	return txp
 }
 
+// Logger is the logger interface assumed by this package
+type Logger interface {
+	Debugf(format string, v ...interface{})
+}
+
 // The Logging transport is a transport that implements logging. It will
 // specifically log the beginning and end of the round trip.
 type Logging struct {
 	Transport
-	Log func(format string, v ...interface{})
+	Logger Logger
 }
 
 // RoundTrip implements Transport.RoundTrip.
 func (txp Logging) RoundTrip(req *http.Request) (*http.Response, error) {
-	txp.Log("> %s %s", req.Method, req.URL)
+	txp.Logger.Debugf("> %s %s", req.Method, req.URL)
 	resp, err := txp.Transport.RoundTrip(req)
 	if err != nil {
-		txp.Log("< %s", err.Error())
+		txp.Logger.Debugf("< %s", err.Error())
 		return nil, err
 	}
-	txp.Log("< %d", resp.StatusCode)
+	txp.Logger.Debugf("< %d", resp.StatusCode)
 	return resp, nil
 }
 
@@ -163,17 +168,17 @@ func (body BodySnapshot) Read(p []byte) (int, error) {
 	return body.ReadCloser.Read(p)
 }
 
-// EventsLogger logs some events occurring during the round trip
-type EventsLogger struct {
+// EventsSaver saves events occurring during the round trip
+type EventsSaver struct {
 	Transport
-	events []RoundTripEvents
+	events []Events
 	mu     sync.Mutex
 }
 
 // RoundTrip implements Transport.RoundTrip.
-func (txp *EventsLogger) RoundTrip(req *http.Request) (*http.Response, error) {
+func (txp *EventsSaver) RoundTrip(req *http.Request) (*http.Response, error) {
 	var (
-		rte RoundTripEvents
+		rte Events
 		mu  sync.Mutex
 	)
 	tracer := &httptrace.ClientTrace{
@@ -216,8 +221,8 @@ func (txp *EventsLogger) RoundTrip(req *http.Request) (*http.Response, error) {
 	return resp, err
 }
 
-// Events returns the saved events
-func (txp *EventsLogger) Events() []RoundTripEvents {
+// ReadEvents reads the saved events and returns them
+func (txp *EventsSaver) ReadEvents() []Events {
 	txp.mu.Lock()
 	events := txp.events
 	txp.events = nil
@@ -225,8 +230,8 @@ func (txp *EventsLogger) Events() []RoundTripEvents {
 	return events
 }
 
-// RoundTripEvents describes round trip events
-type RoundTripEvents struct {
+// Events describes round trip events
+type Events struct {
 	URL                      string
 	RoundTripStartTime       time.Time
 	GetConnTime              time.Time

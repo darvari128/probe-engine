@@ -10,13 +10,13 @@ import (
 
 func TestIntegration(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
-	var d resolver.Resolver
-	d = resolver.Base()
-	d = resolver.ErrWrapper{Resolver: d}
-	saver := &resolver.EventsSaver{Resolver: d}
-	d = saver
-	d = resolver.LoggingResolver{Resolver: d, Logger: log.Log}
-	addrs, err := d.LookupHost(context.Background(), "www.facebook.com")
+	var r resolver.Resolver
+	r = resolver.Base()
+	r = resolver.ErrWrapper{Resolver: r}
+	saver := &resolver.EventsSaver{Resolver: r}
+	r = saver
+	r = resolver.LoggingResolver{Resolver: r, Logger: log.Log}
+	addrs, err := r.LookupHost(context.Background(), "www.facebook.com")
 	if err != nil {
 		t.Fatal(err)
 	}

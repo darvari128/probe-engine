@@ -14,8 +14,8 @@ func TestIntegration(t *testing.T) {
 	var d dialer.Dialer
 	d = dialer.Base()
 	d = dialer.ErrWrapper{Dialer: d}
-	events := &dialer.EventsSaver{Dialer: d}
-	d = events
+	saver := &dialer.EventsSaver{Dialer: d}
+	d = saver
 	d = dialer.LoggingDialer{Dialer: d, Logger: log.Log}
 	d = dialer.ResolvingDialer{Connector: d, Resolver: net.DefaultResolver}
 	d = dialer.LoggingDialer{Dialer: d, Logger: log.Log}
@@ -23,7 +23,7 @@ func TestIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, ev := range events.ReadEvents() {
+	for _, ev := range saver.ReadEvents() {
 		t.Logf("%+v", ev)
 	}
 	conn.Close()

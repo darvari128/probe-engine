@@ -61,16 +61,16 @@ type LoggingHandshaker struct {
 func (h LoggingHandshaker) Handshake(
 	ctx context.Context, conn net.Conn, config *tls.Config,
 ) (net.Conn, tls.ConnectionState, error) {
-	h.Logger.Debugf("tls sni=%s alpn=%s", config.ServerName, config.NextProtos)
+	h.Logger.Debugf("tls %s %+v...", config.ServerName, config.NextProtos)
 	tlsconn, state, err := h.Handshaker.Handshake(ctx, conn, config)
 	if err != nil {
-		h.Logger.Debugf("tls {sni=%s alpn=%s} => %+v", config.ServerName,
+		h.Logger.Debugf("tls %s %+v... %+v", config.ServerName,
 			config.NextProtos, err)
 		return nil, state, err
 	}
-	h.Logger.Debugf("tls {sni=%s alpn=%s} => {negotiated=%s suite=%s v=%s}",
-		config.ServerName, config.NextProtos, state.NegotiatedProtocol,
-		tlsx.CipherSuiteString(state.CipherSuite), tlsx.VersionString(state.Version))
+	h.Logger.Debugf("tls %s %+v... %s %s negotiated=%s",
+		config.ServerName, config.NextProtos, tlsx.CipherSuiteString(state.CipherSuite),
+		tlsx.VersionString(state.Version), state.NegotiatedProtocol)
 	return tlsconn, state, nil
 }
 

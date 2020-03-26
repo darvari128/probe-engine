@@ -98,12 +98,17 @@ func (txp ErrWrapper) RoundTrip(req *http.Request) (*http.Response, error) {
 // always want to set explicitly in the request.
 type HeaderAdder struct {
 	Transport
+	UserAgent string
 }
 
 // RoundTrip implements Transport.RoundTrip.
 func (txp HeaderAdder) RoundTrip(req *http.Request) (*http.Response, error) {
 	if req.Header.Get("User-Agent") == "" {
-		req.Header["User-Agent"] = nil // disable sending user agent
+		if txp.UserAgent != "" {
+			req.Header.Set("User-Agent", txp.UserAgent)
+		} else {
+			req.Header["User-Agent"] = nil // disable sending user agent
+		}
 	}
 	host := req.Host
 	if host == "" {

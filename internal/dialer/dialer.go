@@ -86,9 +86,9 @@ type LoggingDialer struct {
 // DialContext implements Dialer.DialContext.
 func (d LoggingDialer) DialContext(
 	ctx context.Context, network, address string) (net.Conn, error) {
-	d.Logger.Debugf("dial %s/%s", address, network)
+	d.Logger.Debugf("dial %s/%s...", address, network)
 	conn, err := d.Dialer.DialContext(ctx, network, address)
-	d.Logger.Debugf("dial %s/%s => %+v", address, network, err)
+	d.Logger.Debugf("dial %s/%s... %+v", address, network, err)
 	return conn, err
 }
 

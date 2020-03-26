@@ -35,15 +35,20 @@ type Logger interface {
 type LoggingResolver struct {
 	Resolver
 	Logger Logger
+	Prefix string
 }
 
 // LookupHost implements Resolver.LookupHost
 func (r LoggingResolver) LookupHost(
 	ctx context.Context, hostname string) ([]string, error) {
-	r.Logger.Debugf("resolve %s", hostname)
+	r.Logger.Debugf("%sresolve %s...", r.Prefix, hostname)
 	addrs, err := r.Resolver.LookupHost(ctx, hostname)
-	r.Logger.Debugf("resolve %s => {addrs=%+v err=%+v}", hostname, addrs, err)
-	return addrs, err
+	if err != nil {
+		r.Logger.Debugf("%sresolve %s... %+v}", r.Prefix, hostname, err)
+		return nil, err
+	}
+	r.Logger.Debugf("%sresolve %s... %+v", r.Prefix, hostname, addrs)
+	return addrs, nil
 }
 
 // ErrWrapper is a resolver that wraps errors
